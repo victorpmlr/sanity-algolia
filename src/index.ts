@@ -5,6 +5,7 @@ import {
   AlgoliaRecord,
   SerializeFunction,
   VisiblityFunction,
+  TransformFunction,
   WebhookBody,
 } from './types'
 
@@ -40,7 +41,8 @@ const indexer = (
   serializer: SerializeFunction,
   // Optionally provide logic for which documents should be visible or not.
   // Useful if your documents have a isHidden or isIndexed property or similar
-  visible?: VisiblityFunction
+  visible?: VisiblityFunction,
+  transformAll?: TransformFunction
 ) => {
   const transform = async (documents: SanityDocumentStub[]) => {
     const records: AlgoliaRecord[] = await Promise.all(
@@ -90,7 +92,10 @@ const indexer = (
       (id: string) => !visibleIds.includes(id)
     )
 
-    const recordsToSave = await transform(visibleRecords)
+    const transformedRecords = transformAll
+      ? await transformAll(visibleRecords)
+      : visibleRecords
+    const recordsToSave = await transform(transformedRecords)
 
     if (recordsToSave.length > 0) {
       for (const type in typeIndexMap) {
