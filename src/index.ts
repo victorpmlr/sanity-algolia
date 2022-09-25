@@ -70,7 +70,9 @@ const indexer = (
     const query = `* [(_id in $created || _id in $updated) && _type in $types] ${indexMapProjection(
       typeIndexMap
     )}`
-    const { created = [], updated = [] } = body.ids
+    let { created = [], updated = [] } = body.ids
+    created = created.filter((item) => !!item)
+    updated = updated.filter((item) => !!item)
     const docs: SanityDocumentStub[] = await client.fetch(query, {
       created,
       updated,
@@ -112,7 +114,7 @@ const indexer = (
      * in any index we have.
      */
     const { deleted = [] } = body.ids
-    const recordsToDelete = deleted.concat(hiddenIds)
+    const recordsToDelete = deleted.concat(hiddenIds).filter((item) => !!item)
 
     if (recordsToDelete.length > 0) {
       for await (const typeIndexConfig of Object.values(typeIndexMap)) {
